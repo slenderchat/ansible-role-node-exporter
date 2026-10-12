@@ -1,0 +1,7 @@
+---
+- name: Deploy node_exporter
+  hosts: all
+  become: true
+  gather_facts: false
+  roles:
+    - node_exporter

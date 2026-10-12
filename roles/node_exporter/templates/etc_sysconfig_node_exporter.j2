@@ -1,0 +1,47 @@
+{#
+  OPTIONS is parsed twice: by systemd as an EnvironmentFile value, then split
+  into arguments when ExecStart expands $OPTIONS. The split drops backslashes
+  and quotes, so argument values must contain neither (use [.] instead of \.)
+  and no whitespace. The listen port is set by node_exporter.socket.
+#}
+# {{ ansible_managed }}
+OPTIONS="--collector.textfile.directory=/var/lib/node_exporter/textfile_collector \
+         --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/) \
+         --collector.buddyinfo \
+         --collector.cgroups \
+         --collector.cpu_vulnerabilities \
+         --collector.ksmd \
+         --collector.lnstat \
+         --collector.logind \
+         --collector.network_route \
+         --collector.softirqs \
+         --collector.xfrm \
+         --collector.zoneinfo \
+         --collector.interrupts \
+         --collector.meminfo_numa \
+         --collector.mountstats \
+         --collector.ntp \
+         --collector.processes \
+         --collector.slabinfo \
+         --collector.tcpstat \
+         --collector.systemd \
+         --collector.cpu.guest \
+         --collector.cpu.info \
+         --collector.netdev.label-ifalias \
+         --collector.netdev.address-info \
+         --collector.netdev.enable-detailed-metrics \
+         --collector.stat.softirq \
+         --collector.rapl.enable-zone-label \
+         --collector.ntp.server={{ node_exporter_ntp_server }} \
+         --collector.ntp.server-is-local \
+         --collector.ntp.server-port=123 \
+         --collector.ntp.protocol-version=4 \
+         --collector.ntp.ip-ttl=64 \
+         --collector.ntp.max-distance=1s \
+         --collector.ntp.local-offset-tolerance=50ms \
+         --collector.slabinfo.slabs-include=^(dentry|inode_cache|kmalloc-(64|96|128|192|256|512|1024|2048|4096)|radix_tree_node|buffer_head|skbuff_head_cache|nf_conntrack|xfs_inode|ext4_inode_cache)$ \
+         --collector.systemd.unit-include=.+ \
+         --collector.systemd.unit-exclude=.+[.](automount|device|mount|scope|slice)$ \
+         --collector.systemd.enable-task-metrics \
+         --collector.systemd.enable-restarts-metrics \
+         --collector.systemd.enable-start-time-metrics"

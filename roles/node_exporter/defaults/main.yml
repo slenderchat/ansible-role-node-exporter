@@ -1,0 +1,4 @@
+---
+# NTP server queried by the ntp collector (--collector.ntp.server).
+# Must not contain whitespace, quotes or backslashes (see the template).
+node_exporter_ntp_server: "127.0.0.1"

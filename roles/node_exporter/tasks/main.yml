@@ -1,0 +1,71 @@
+---
+- name: Install node_exporter package
+  ansible.builtin.package:
+    name: prometheus-node_exporter
+    state: present
+  register: node_exporter_package
+
+# The units may have been masked to avoid conflicts with the former
+# Docker deployment.
+- name: Unmask node_exporter units
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    masked: false
+  loop:
+    - node_exporter.socket
+    - node_exporter.service
+
+- name: Configure node_exporter options
+  ansible.builtin.template:
+    src: etc_sysconfig_node_exporter.j2
+    dest: /etc/sysconfig/node_exporter
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart node_exporter
+
+- name: Create node_exporter service drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/node_exporter.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure node_exporter service restart policy
+  ansible.builtin.copy:
+    src: restart.conf
+    dest: /etc/systemd/system/node_exporter.service.d/restart.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart node_exporter
+
+- name: Apply pending node_exporter changes
+  ansible.builtin.meta: flush_handlers
+
+# In check mode the units do not exist yet if the package install was only
+# simulated.
+- name: Enable and start node_exporter units
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - node_exporter.socket
+    - node_exporter.service
+  when: not (ansible_check_mode and node_exporter_package is changed)
+
+# uri does not run in check mode, so there is no status to evaluate.
+- name: Check that node_exporter serves metrics
+  ansible.builtin.uri:
+    url: http://127.0.0.1:9100/metrics
+    use_proxy: false
+    status_code: 200
+  register: node_exporter_metrics
+  until: node_exporter_metrics.status == 200
+  retries: 5
+  delay: 3
+  when: not ansible_check_mode
