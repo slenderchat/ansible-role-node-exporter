@@ -40,9 +40,10 @@ vault_pass*
 id_rsa*
 id_ed25519*
 
-# Agent-local files (shared instructions are AGENTS.md / CLAUDE.md)
+# Agent-local files
+.claude/
 CLAUDE.local.md
-.claude/settings.local.json
+.mcp.json
 
 # IDE and editor files
 .idea/
